@@ -5,7 +5,7 @@ dashboard. html
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Student Table</title>
+  <title>User Data Table</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css" />
@@ -119,24 +119,18 @@ dashboard. html
       justify-content: flex-end;
     }
 
-    #filteredGrid, #allDataGrid {
+    #allDataGrid {
       width: 90%;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       background-color: white;
-    }
-
-    #filteredGrid {
-      height: 300px;
-      margin-bottom: 20px;
-    }
-
-    #allDataGrid {
       height: 400px;
       display: none; /* Initially hidden */
+      margin-bottom: 20px;
     }
 
     #all-data-section {
       width: 90%;
+      display: none; /* Initially hidden */
     }
 
     #all-data-section h2 {
@@ -178,30 +172,31 @@ dashboard. html
     </div>
   </div>
 
-  <div id="filteredGrid" class="ag-theme-alpine"></div>
-
   <div id="all-data-section">
-    <h2>All Saved Entries</h2>
+    <h2>All User Details</h2>
+    <div id="date-filter-container" style="margin-bottom: 10px;">
+      <label for="date-filter">Filter by Date: </label>
+      <input type="date" id="date-filter" class="clean-input" onchange="filterByDate(this.value)">
+    </div>
     <div id="allDataGrid" class="ag-theme-alpine"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.noStyle.js"></script>
 
 <script>
-  let filteredGridApi, allDataGridApi;
+  let allDataGridApi;
   const savedData = [];
-  let currentFilteredData = [];
 
   const columnDefs = [
-    { headerName: 'Date', field: 'date', filter: 'agDateColumnFilter', filterParams: { comparator: dateComparator } },
-    { headerName: 'Employee Role', field: 'employeeName', filter: 'agTextColumnFilter' },
-    { headerName: 'Task Description', field: 'taskDescription', filter: 'agTextColumnFilter' },
-    { headerName: 'Planned Hours', field: 'plannedHours', filter: 'agNumberColumnFilter' },
-    { headerName: 'Actual Hours', field: 'actualHours', filter: 'agNumberColumnFilter' },
-    { headerName: 'Code Review Status', field: 'codeReviewStatus', filter: 'agTextColumnFilter' },
-    { headerName: 'Productivity Rating', field: 'productivityRatio', filter: 'agNumberColumnFilter' },
-    { headerName: 'Quality Testing', field: 'qualityTesting', filter: 'agNumberColumnFilter' },
-    { headerName: 'Status', field: 'status', filter: 'agTextColumnFilter' }
+    { headerName: 'Date', field: 'date', filter: 'agDateColumnFilter', filterParams: { comparator: dateComparator }, sortable: true, resizable: true },
+    { headerName: 'Employee Role', field: 'employeeName', sortable: true, resizable: true },
+    { headerName: 'Task Description', field: 'taskDescription', sortable: true, resizable: true },
+    { headerName: 'Planned Hours', field: 'plannedHours', sortable: true, resizable: true },
+    { headerName: 'Actual Hours', field: 'actualHours', sortable: true, resizable: true },
+    { headerName: 'Code Review Status', field: 'codeReviewStatus', sortable: true, resizable: true },
+    { headerName: 'Productivity Rating', field: 'productivityRatio', sortable: true, resizable: true },
+    { headerName: 'Quality Testing', field: 'qualityTesting', sortable: true, resizable: true },
+    { headerName: 'Status', field: 'status', sortable: true, resizable: true }
   ];
 
   function dateComparator(filterLocalDateAtMidnight, cellValue) {
@@ -218,20 +213,6 @@ dashboard. html
     }
   }
 
-  // Initialize ag-Grid for filtered data
-  new agGrid.Grid(document.querySelector('#filteredGrid'), {
-    columnDefs: columnDefs,
-    rowData: [],
-    onGridReady: params => {
-      filteredGridApi = params.api;
-      // Set initial filter for the filtered grid (optional)
-      // filteredGridApi.setFilterModel({});
-    },
-    pagination: true,
-    paginationPageSize: 5,
-    domLayout: 'normal'
-  });
-
   // Initialize ag-Grid for all saved data
   new agGrid.Grid(document.querySelector('#allDataGrid'), {
     columnDefs: columnDefs,
@@ -240,13 +221,12 @@ dashboard. html
       allDataGridApi = params.api;
     },
     pagination: true,
-    paginationPageSize: 5,
+    paginationPageSize: 10,
     domLayout: 'normal'
   });
 
   function showTable() {
     document.getElementById('table-section').style.display = 'block';
-    document.getElementById('filteredGrid').style.display = 'block';
     document.getElementById('all-data-section').style.display = 'none';
     document.querySelector('.add-btn-container').style.display = 'none';
     addRow();
@@ -254,7 +234,6 @@ dashboard. html
 
   function hideTable() {
     document.getElementById('table-section').style.display = 'none';
-    document.getElementById('filteredGrid').style.display = 'none';
     document.getElementById('all-data-section').style.display = 'none';
     document.querySelector('.add-btn-container').style.display = 'flex';
   }
@@ -295,8 +274,8 @@ dashboard. html
     const table = document.getElementById("student-table");
     const rowData = [];
 
-    for (let i = 0; i < table.rows.length; i++) { // Start from 0 to include header for column names
-      if (i === 0) continue; // Skip the header row
+    for (let i = 0; i < table.rows.length; i++) {
+      if (i === 0) continue;
 
       const row = table.rows[i];
       const inputs = row.querySelectorAll("input, select");
@@ -321,35 +300,20 @@ dashboard. html
   function moveToAllData() {
     saveData();
     document.getElementById('table-section').style.display = 'none';
-    document.getElementById('filteredGrid').style.display = 'block';
     document.getElementById('all-data-section').style.display = 'block';
+    document.getElementById('allDataGrid').style.display = 'block';
     document.querySelector('.add-btn-container').style.display = 'flex';
 
     if (allDataGridApi) {
       allDataGridApi.setRowData(savedData);
     }
-
-    // Initially display all saved data in the filtered grid as well
-    if (filteredGridApi) {
-      filteredGridApi.setRowData(savedData);
-    }
   }
 
-  // Function to filter the grid by date
   function filterByDate(date) {
-    if (filteredGridApi) {
-      filteredGridApi.setFilterModel({
+    if (allDataGridApi) {
+      allDataGridApi.setFilterModel({
         date: { type: 'equals', dateFrom: date, dateTo: date }
       });
-    }
-  }
-
-  // Generic function to filter grid columns
-  function filterByColumn(value, columnName) {
-    if (filteredGridApi) {
-      const filterModel = filteredGridApi.getFilterModel();
-      filterModel[columnName] = { type: 'contains', filter: value };
-      filteredGridApi.setFilterModel(filterModel);
     }
   }
 </script>
