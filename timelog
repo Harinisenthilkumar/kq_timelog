@@ -1,6 +1,4 @@
-dashboard. html 
 
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +7,6 @@ dashboard. html
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css" />
-  <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
   <style>
     body {
       margin: 0;
@@ -22,6 +19,28 @@ dashboard. html
       box-sizing: border-box;
     }
 
+    #initial-add-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 100px; /* Adjust as needed to center vertically */
+      margin-bottom: 40px; /* Add some space below the initial button */
+      width: 90%;
+    }
+
+    #initial-add-btn {
+      padding: 15px 30px;
+      background-color: #3F2768;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2em;
+    }
+
+    #initial-add-btn:hover {
+      background-color: #58358c;
+    }
+
     .add-btn-container {
       width: 90%;
       display: flex;
@@ -30,17 +49,17 @@ dashboard. html
     }
 
     .add-btn {
-      padding: 15px 30px;
-      background-color: #1976d2;
+      padding: 10px 20px;
+      background-color: #3F2768;
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 1.2em;
+      font-size: 1em;
     }
 
     .add-btn:hover {
-      background-color: #1565c0;
+      background-color: #58358c;
     }
 
     #table-section {
@@ -82,14 +101,13 @@ dashboard. html
       border: 1px solid #ccc;
       border-radius: 4px;
       outline: none;
-      width: calc(100% - 16px);
       box-sizing: border-box;
     }
 
     .add-row-btn, .save-btn, .cancel-btn {
       margin-right: 10px;
       padding: 10px 18px;
-      background-color: #4caf50;
+      background-color:#3F2768;
       color: white;
       border: none;
       border-radius: 4px;
@@ -102,11 +120,11 @@ dashboard. html
     }
 
     .add-row-btn:hover {
-      background-color: #45a049;
+      background-color:#58358c;
     }
 
     .save-btn:hover {
-      background-color: #388e3c;
+      background-color:#58358c;
     }
 
     .cancel-btn:hover {
@@ -137,16 +155,24 @@ dashboard. html
       color: #333;
       margin-top: 0;
       margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #date-filter-container {
+      margin-bottom: 10px;
     }
   </style>
 </head>
+
 <body>
-  <div class="add-btn-container">
-    <button class="add-btn" onclick="showTable()">Add User</button>
+  <div id="initial-add-container">
+    <button id="initial-add-btn" onclick="showTable()">Add Log</button>
   </div>
 
   <div id="table-section">
-    <h2>Add User Details</h2>
+    <h2>Add Log details </h2>
     <table id="student-table">
       <thead>
         <tr>
@@ -164,6 +190,7 @@ dashboard. html
       <tbody></tbody>
     </table>
 
+
     <button class="add-row-btn" onclick="addRow()">Add Row</button>
 
     <div id="button-container">
@@ -172,159 +199,527 @@ dashboard. html
     </div>
   </div>
 
+
   <div id="all-data-section">
     <h2>All User Details</h2>
     <div id="date-filter-container" style="margin-bottom: 10px;">
       <label for="date-filter">Filter by Date: </label>
       <input type="date" id="date-filter" class="clean-input" onchange="filterByDate(this.value)">
     </div>
+    <div class="add-btn-container">
+      <button class="add-btn" onclick="showTable()">Add Log</button>
+    </div>
     <div id="allDataGrid" class="ag-theme-alpine"></div>
   </div>
 
+
+
   <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.noStyle.js"></script>
+  <script>
+    let allDataGridApi;
+    let savedData = localStorage.getItem('logData') ? JSON.parse(localStorage.getItem('logData')) : [];
 
-<script>
-  let allDataGridApi;
-  const savedData = [];
+    const columnDefs = [
+      {
+        headerName: 'Date',
+        field: 'date',
+        filter: 'agDateColumnFilter',
+        filterParams: {
+          comparator: dateComparator
+        },
+        sortable: true,
+        resizable: true
+      },
+      { headerName: 'Employee Role', field: 'employeeName', sortable: true, resizable: true },
+      { headerName: 'Task Description', field: 'taskDescription', sortable: true, resizable: true },
+      { headerName: 'Planned Hours', field: 'plannedHours', sortable: true, resizable: true },
+      { headerName: 'Actual Hours', field: 'actualHours', sortable: true, resizable: true },
+      { headerName: 'Code Review Status', field: 'codeReviewStatus', sortable: true, resizable: true },
+      { headerName: 'Productivity Rating', field: 'productivityRatio', sortable: true, resizable: true },
+      { headerName: 'Quality Testing', field: 'qualityTesting', sortable: true, resizable: true },
+      { headerName: 'Status', field: 'status', sortable: true, resizable: true }
+    ];
 
-  const columnDefs = [
-    { headerName: 'Date', field: 'date', filter: 'agDateColumnFilter', filterParams: { comparator: dateComparator }, sortable: true, resizable: true },
-    { headerName: 'Employee Role', field: 'employeeName', sortable: true, resizable: true },
-    { headerName: 'Task Description', field: 'taskDescription', sortable: true, resizable: true },
-    { headerName: 'Planned Hours', field: 'plannedHours', sortable: true, resizable: true },
-    { headerName: 'Actual Hours', field: 'actualHours', sortable: true, resizable: true },
-    { headerName: 'Code Review Status', field: 'codeReviewStatus', sortable: true, resizable: true },
-    { headerName: 'Productivity Rating', field: 'productivityRatio', sortable: true, resizable: true },
-    { headerName: 'Quality Testing', field: 'qualityTesting', sortable: true, resizable: true },
-    { headerName: 'Status', field: 'status', sortable: true, resizable: true }
-  ];
-
-  function dateComparator(filterLocalDateAtMidnight, cellValue) {
-    if (cellValue == null) {
-      return -1;
-    }
-    const cellDate = new Date(cellValue);
-    if (cellDate < filterLocalDateAtMidnight) {
-      return -1;
-    } else if (cellDate > filterLocalDateAtMidnight) {
-      return 1;
-    } else {
+    function dateComparator(filterLocalDateAtMidnight, cellValue) {
+      if (!cellValue) return -1;
+      const cellDate = new Date(cellValue);
+      cellDate.setHours(0, 0, 0, 0);
+      if (cellDate < filterLocalDateAtMidnight) return -1;
+      if (cellDate > filterLocalDateAtMidnight) return 1;
       return 0;
     }
-  }
 
-  // Initialize ag-Grid for all saved data
-  new agGrid.Grid(document.querySelector('#allDataGrid'), {
-    columnDefs: columnDefs,
-    rowData: [],
-    onGridReady: params => {
-      allDataGridApi = params.api;
-    },
-    pagination: true,
-    paginationPageSize: 10,
-    domLayout: 'normal'
-  });
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: savedData,
+      onGridReady: params => {
+        allDataGridApi = params.api;
+      },
+      pagination: true,
+      paginationPageSize: 10,
+      domLayout: 'normal'
+    };
 
-  function showTable() {
-    document.getElementById('table-section').style.display = 'block';
-    document.getElementById('all-data-section').style.display = 'none';
-    document.querySelector('.add-btn-container').style.display = 'none';
-    addRow();
-  }
+    document.addEventListener('DOMContentLoaded', () => {
+      new agGrid.Grid(document.querySelector('#allDataGrid'), gridOptions);
+      if (allDataGridApi) {
+        allDataGridApi.setRowData(savedData);
+      }
+      document.getElementById('all-data-section').style.display = 'none';
+    });
 
-  function hideTable() {
-    document.getElementById('table-section').style.display = 'none';
-    document.getElementById('all-data-section').style.display = 'none';
-    document.querySelector('.add-btn-container').style.display = 'flex';
-  }
+    function showTable() {
+      document.getElementById('table-section').style.display = 'block';
+      document.getElementById('all-data-section').style.display = 'none';
+      document.getElementById('initial-add-container').style.display = 'none';
+      addRow();
+    }
 
-  function addRow() {
-    const tableBody = document.querySelector('#student-table tbody');
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><input type="date" class="clean-input" /></td>
-      <td>
-        <select class="clean-input">
-          <option value="">Select</option>
-          <option value="CEO">CEO</option>
-          <option value="Admin">Admin</option>
-          <option value="Manager">Manager</option>
-          <option value="TL">TL</option>
-        </select>
-      </td>
-      <td><input type="text" class="clean-input" /></td>
-      <td><input type="number" min="1" max="1000" class="clean-input" /></td>
-      <td><input type="number" min="1" max="1000" class="clean-input" /></td>
-      <td>
-        <select class="clean-input">
-          <option value="">Select</option>
-          <option value="Done">Done</option>
-          <option value="Working">Working</option>
-          <option value="Not Yet Started">Not Yet Started</option>
-        </select>
-      </td>
-      <td><input type="number" min="1" max="10" value="0" class="clean-input" /></td>
-      <td><input type="number" min="1" max="10" value="0" class="clean-input" /></td>
-      <td><input type="text" class="clean-input" /></td>
-    `;
-    tableBody.appendChild(row);
-  }
+    function hideTable() {
+      document.getElementById('table-section').style.display = 'none';
+      document.getElementById('all-data-section').style.display = 'block';
+      document.getElementById('initial-add-container').style.display = 'flex';
+    }
 
-  function saveData() {
-    const table = document.getElementById("student-table");
-    const rowData = [];
+    function addRow() {
+      const tableBody = document.querySelector('#student-table tbody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="date" class="clean-input" /></td>
+        <td>
+          <select class="clean-input">
+            <option value="">Select</option>
+            <option value="CEO">CEO</option>
+            <option value="Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="TL">TL</option>
+          </select>
+        </td>
+        <td><input type="text" class="clean-input" /></td>
+        <td><input type="number" min="1" max="1000" class="clean-input" /></td>
+        <td><input type="number" min="1" max="1000" class="clean-input" /></td>
+        <td>
+          <select class="clean-input">
+            <option value="">Select</option>
+            <option value="Done">Done</option>
+            <option value="Working">Working</option>
+            <option value="Not Yet Started">Not Yet Started</option>
+          </select>
+        </td>
+        <td><input type="number" min="1" max="10" value="0" class="clean-input" /></td>
+        <td><input type="number" min="1" max="10" value="0" class="clean-input" /></td>
+        <td><input type="text" class="clean-input" /></td>
+      `;
+      tableBody.appendChild(row);
+    }
 
-    for (let i = 0; i < table.rows.length; i++) {
-      if (i === 0) continue;
+    function saveDataToLocalStorage() {
+      const table = document.getElementById("student-table");
+      const newData = [];
 
-      const row = table.rows[i];
-      const inputs = row.querySelectorAll("input, select");
-      const entry = {
-        date: inputs[0].value,
-        employeeName: inputs[1].value,
-        taskDescription: inputs[2].value,
-        plannedHours: inputs[3].value,
-        actualHours: inputs[4].value,
-        codeReviewStatus: inputs[5].value,
-        productivityRatio: inputs[6].value,
-        qualityTesting: inputs[7].value,
-        status: inputs[8].value
-      };
+      for (let i = 1; i < table.rows.length; i++) {
+        const row = table.rows[i];
+        const inputs = row.querySelectorAll("input, select");
+        newData.push({
+          date: inputs[0].value,
+          employeeName: inputs[1].value,
+          taskDescription: inputs[2].value,
+          plannedHours: parseInt(inputs[3].value) || 0,
+          actualHours: parseInt(inputs[4].value) || 0,
+          codeReviewStatus: inputs[5].value,
+          productivityRatio: parseInt(inputs[6].value) || 0,
+          qualityTesting: parseInt(inputs[7].value) || 0,
+          status: inputs[8].value
+        });
+      }
 
-      if (entry.date) {
-        savedData.push(entry);
+      const validNewData = newData.filter(item => item.date);
+      savedData = [...savedData, ...validNewData];
+      localStorage.setItem('logData', JSON.stringify(savedData));
+
+      if (allDataGridApi) {
+        allDataGridApi.setRowData(savedData);
       }
     }
-  }
 
-  function moveToAllData() {
-    saveData();
-    document.getElementById('table-section').style.display = 'none';
-    document.getElementById('all-data-section').style.display = 'block';
-    document.getElementById('allDataGrid').style.display = 'block';
-    document.querySelector('.add-btn-container').style.display = 'flex';
-
-    if (allDataGridApi) {
-      allDataGridApi.setRowData(savedData);
+    function moveToAllData() {
+      saveDataToLocalStorage();
+      document.getElementById('table-section').style.display = 'none';
+      document.getElementById('all-data-section').style.display = 'block';
+      document.getElementById('initial-add-container').style.display = 'none';
+      document.getElementById('allDataGrid').style.display = 'block';
     }
-  }
 
-  function filterByDate(date) {
-    if (allDataGridApi) {
-      allDataGridApi.setFilterModel({
-        date: { type: 'equals', dateFrom: date, dateTo: date }
-      });
+    function filterByDate(date) {
+      if (allDataGridApi) {
+        const dateFilterComponent = allDataGridApi.getFilterInstance('date');
+        if (dateFilterComponent) {
+          dateFilterComponent.setModel({
+            type: 'equals',
+            dateFrom: date
+          });
+          allDataGridApi.onFilterChanged();
+        }
+      }
     }
-  }
-</script>
-
+  </script>
 </body>
 </html>
 
 
 
+login.html
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <title>Login</title>
+  <style>
+    .error-message {
+      color: red;
+      font-size: 0.8em;
+      margin-top: 5px;
+    }
+    .toggle-password-icon {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+    .messages {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 10px;
+      color: red;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+    <div class="background-wrapper">
+      <div class="main-login-box">
+        <div class="login-form-side">
+          <h2>Login to your account</h2>
+          <form method="POST" class="login-form" id="loginForm" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="text" id="email" name="username" required>
+              <p class="error-message" id="emailError"></p>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div style="position: relative;">
+                <input type="password" id="password" name="password" required>
+                <img src="{% static 'accounts/images/eye-close.svg' %}" alt="Toggle Password" id="togglePassword" class="toggle-password-icon" style="cursor: pointer;">
+              </div>
+              <a href="#" class="forgot-password">Forgot Password?</a>
+              <p class="error-message" id="passwordError"></p>
+            </div>
+
+            <button type="submit" class="login-btn" id="submitLogin">
+              Login
+              <img src="{% static 'accounts/images/Group 26197.svg' %}" alt="Arrow Icon">
+            </button>
+
+            {% if messages %}
+              <ul class="messages">
+                {% for message in messages %}
+                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </form>
+        </div>
+
+        <div class="login-overlay-side">
+          <img src="{% static '/Assessment logo.png' %}" alt="Assessment Logo" class="logo-image">
+          <img src="{% static '/Rectangle 14.png' %}" alt="Rectangle" class="rectangle-img">
+        </div>
+      </div>
+    </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const passwordInput = document.getElementById('password');
+      const togglePasswordIcon = document.getElementById('togglePassword');
+      const eyeOpenSrc = "{% static '/images/eye.svg' %}";
+      const eyeCloseSrc = "{% static '/images/eye-close.svg' %}";
+
+      togglePasswordIcon.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.src = type === 'password' ? eyeCloseSrc : eyeOpenSrc;
+      });
+    });
+  </script>
+  </body>
+
+</html>
+
+login.css
+
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: Calibri, sans-serif;
+    background: url("/static/images/bg.jpg") no-repeat center center fixed;
+    background-size: cover;
+  }
+  
+  .background-wrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Centered login box */
+  .main-login-box {
+    width: 900px;
+    height: 605px;
+    background: #FFFFFF;
+    box-shadow: 10px 30px 50px #3F27684D;
+    border-radius: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+  }
+  
+  
+  
+  /* Container for login form */
+  .login-form-side {
+    flex: 1;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: #fff;
+  }
+  
+  /* Heading */
+  .login-form-side h2 {
+    font-size: 24px;
+    margin-bottom: 60px;
+    color: #3F2768;
+  }
+  
+  /* Group: Email, Password */
+  .form-group {
+    position: relative;
+    margin-bottom: 30px; /* Space between Email and Password */
+  }
+  
+  /* Label style */
+  .form-group label {
+    font-size: 16px;
+    color: #3F2768;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  /* Input Fields */
+  .form-group input {
+    width: 100%;
+    height: 50px;
+    padding: 0 45px 0 15px;
+    border: 1px solid #D4CDE1;
+    border-radius: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    background: #FFFFFF;
+  }
+  
+  
+  .form-group input {
+    padding: 12px 40px 12px 10px;
+    width: 100%;
+    border: 1px solid #D4CDE1;
+    border-radius: 10px;
+    font-size: 16px;
+    box-sizing: border-box;
+    height: 50px;
+  }
+  
+  /* Toggle Eye Icon */
+  .toggle-password-icon {
+    position: absolute;
+    right: 10px;
+    top: 38px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+  }
+  
+  /* Forgot Password */
+  .forgot-password {
+    position: absolute;
+    right: 0;
+    bottom: -20px;
+    font-size: 14px;
+    color: #3F2768;
+    text-decoration: none;
+  }
+  
+  .login-form-side label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .login-form-side input {
+    width: 330px;
+    height: 50px;
+    background: #FFFFFF;
+    border: 1px solid #D4CDE1;
+    border-radius: 10px;
+    padding: 0 15px;
+    font-size: 16px;
+  }
+  
+  .forgot-password {
+    position: absolute;
+    right: 0;
+    bottom: -20px;
+    font-size: 14px;
+    color: #3F2768;
+    text-decoration: none;
+  }
+  
+  /* Button */
+  .login-btn {
+    width: 330px;
+    height: 50px;
+    background: #3F2768;
+    box-shadow: 0px 10px 20px #3F27684D;
+    border-radius: 10px;
+    opacity: 1;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
+    margin-top: 84px;
+}
+  .arrow-icon {
+    width: 10px;
+    height: 10px;
+    opacity: 1;
+  }
+  
+  
+  
+  .login-overlay-side {
+    flex: 1;
+    background: #3F2768;
+   background-image: url("../images/login-background.png");
+    color: white; 
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+  
+  }
+  
+  .logo-image {
+    width: 333px;
+    height: 265px;
+    margin-bottom: 20px;
+  }
+  
+  
+  .logo-text-management {
+    font-weight: 300;
+    font-size: 30px;
+    color: #EB8022;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .rectangle-img {
+    width: 238px;
+    height: 46px;
+  }
+  .error-message {
+    height: 20px; /* Reserve space */
+    color: red;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .error-message p {
+    margin: 0;
+  }
+  
+    .error-message {
+      color: red;
+      font-size: 0.8em;
+      margin-top: 5px;
+    }
+    .toggle-password-icon {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+    .messages {
+      list-style-type: none;
+      padding: 0;
+      margin-top: 10px;
+      color: red;
+      font-size: 0.9em;
+    }
 
 
+urls:
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('login/', views.login_view, name='login'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+  
+]
+
+
+views.py
+
+from django.shortcuts import render, redirect
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        request.session['username'] = username
+        return redirect('dashboard') 
+    return render(request, 'login.html')
+
+
+def dashboard(request):
+    username = request.session.get('username', 'Guest')
+    return render(request, 'dashboard.html', {'username': username})
 
 
 kq-https://kqproducts.net/ems/TimeLog/formTimeLog
