@@ -12,29 +12,6 @@ LOGIN.HTML
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="{% static 'css/login.css' %}">
   <title>Login</title>
-  <style>
-    .error-message {
-      color: red;
-      font-size: 0.8em;
-      margin-top: 5px;
-    }
-    .toggle-password-icon {
-      position: absolute;
-      top: 50%;
-      right: 10px;
-      transform: translateY(-50%);
-      cursor: pointer;
-      width: 20px;
-      height: 20px;
-    }
-    .messages {
-      list-style-type: none;
-      padding: 0;
-      margin-top: 10px;
-      color: red;
-      font-size: 0.9em;
-    }
-  </style>
 </head>
 <body>
     <div class="background-wrapper">
@@ -62,7 +39,7 @@ LOGIN.HTML
 
             <button type="submit" class="login-btn" id="submitLogin">
               Login
-              <img src="{% static 'images/Group 26197.svg' %}" alt="Arrow Icon">
+              <img src="{% static 'image/group_26197.svg' %}" alt="Arrow Icon">
             </button>
 
             {% if messages %}
@@ -100,7 +77,6 @@ LOGIN.HTML
   </body>
 
 </html>
-
 
 
 
@@ -346,68 +322,17 @@ DASHBOARD.HTML
 {% load static %}
 {% load component_tags %}
 {% block style %}
+
+
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 {% endblock %}
 {% block content %}
 <section class="form-main-container" style="display: flex; width: 100%;">
   {% component 'sidebar' %}{% endcomponent %}
-<div class="outer-div">
-  <div id="table-section" style="display: none; flex-grow: 1;">
-    <h2>Add Log Details</h2>
-    <table id="student-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Employee Name</th>
-          <th>Task Description</th>
-          <th>Planned Hours</th>
-          <th>Actual Hours</th>
-          <th>Code Review Status</th>
-          <th>Productivity Rating</th>
-          <th>Quality Testing</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
-
-    <div id="button-container">
-      <button class="save-btn" onclick="moveToAllData()">Save</button>
-      <button class="cancel-btn" onclick="hideTable()">Cancel</button>
-    </div>
-  </div>
-
-  <div id="all-data-section">
-    <h2>All User Details</h2>
-    <div id="filter-and-add-container">
-      <div id="date-filter-container">
-        <label for="date-filter" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; font-weight: bold; color: #333; margin-right: 10px;">
-          Filter by Date:
-        </label>
-        
-        {% comment %} <input type="date" id="date-filter" class="input.clean-input " onchange="filterByDate(this.value)"> {% endcomment %}
-        <input
-  type="date"
-  id="date-filter"
-  class="clean-input"
-  onchange="filterByDate(this.value)"
-  style="padding: 8px; border: 2px solid #ccc; border-radius: 4px; outline: none; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; color:#121212;">
-
-      </div><br>
-      <!-- <div class="add-btn-container">
-        <button class="add-btn" onclick="showTable()">Add Log</button>
-      </div> -->
-      <div class="add-btn-container" style="display: flex; flex-direction: row;    gap: 85%; align-items: flex-end; color: #3F2768;">
-        <h3 >Filtered Details for Selected Date</h3>
-        <button class="add-btn" onclick="showTable()">Add Log</button>
-      </div>
-    </div>
-    <div id="allDataGrid" class="ag-theme-alpine" style="height: 400px;"></div>
-
-    <div id="filtered-data-section">
-      <!-- <h3>Filtered Details for Selected Date</h3> -->
-      <table id="filtered-table" border="1" style=width:107%; border-collapse: collapse;">
+  <div class="outer-div">
+    <div id="table-section" style="display: none; flex-grow: 1;">
+      <h2>Add Log Details</h2>
+      <table id="student-table">
         <thead>
           <tr>
             <th>Date</th>
@@ -417,18 +342,65 @@ DASHBOARD.HTML
             <th>Actual Hours</th>
             <th>Code Review Status</th>
             <th>Productivity Rating</th>
-            <th>Quality Testing</th>
+            <th>Quality Rating</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+      <button class="add-row-btn" onclick="addRow()">+ Add Row</button>
+
+     
+    </div>
+
+    <div id="all-data-section">
+      <h2>All User Details</h2>
+      <div id="filter-and-add-container">
+        <div id="date-filter-container">
+          <label for="date-filter" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; font-weight: bold; color: #333; margin-right: 10px;">
+            Filter by Date:
+          </label>
+          
+          <input type="date" id="date-filter" class="clean-input" onchange="filterByDate(this.value)" style="padding: 8px; border: 2px solid #ccc; border-radius: 4px; outline: none; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; color:#121212;">
+        </div><br>
+
+        <div class="add-btn-container">
+          <h3>Filtered Details for Selected Date</h3>
+          <button class="add-btn" onclick="showTable()">Add Log</button>
+          
+        </div>
+      
+      </div>
+
+      <div id="allDataGrid" class="ag-theme-alpine" style="height: 400px;"></div>
+
+      <div id="filtered-data-section">
+        <table id="filtered-table" border="1" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Employee Name</th>
+              <th>Task Description</th>
+              <th>Planned Hours</th>
+              <th>Actual Hours</th>
+              <th>Code Review Status</th>
+              <th>Productivity Rating</th>
+              <th>Quality Rating </th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="button-container">
+      <button class="save-btn" onclick="moveToAllData()">Save</button>
+      <button class="cancel-btn" onclick="hideTable()">Cancel</button>
     </div>
   </div>
-</div>
 </section>
-{%endblock%}
-{%block script%}
+{% endblock %}
+{% block script %}
 <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.0.1/dist/ag-grid-community.min.noStyle.js"></script>
 <script>
   let allDataGridApi;
@@ -460,13 +432,15 @@ DASHBOARD.HTML
       headerName: 'Planned Hours',
       field: 'plannedHours',
       sortable: true,
-      resizable: true
+      resizable: true,
+      valueFormatter: formatTime
     },
     {
       headerName: 'Actual Hours',
       field: 'actualHours',
       sortable: true,
-      resizable: true
+      resizable: true,
+      valueFormatter: formatTime
     },
     {
       headerName: 'Code Review Status',
@@ -503,6 +477,14 @@ DASHBOARD.HTML
     return 0;
   }
 
+  function formatTime(params) {
+    const value = params.value;
+    if (!value) return '';
+    const hours = Math.floor(value / 60);
+    const minutes = value % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+
   const gridOptions = {
     columnDefs: columnDefs,
     rowData: savedData,
@@ -518,8 +500,24 @@ DASHBOARD.HTML
   document.addEventListener('DOMContentLoaded', () => {
     new agGrid.Grid(document.querySelector('#allDataGrid'), gridOptions);
     showAllDataSection();
-    updateFilteredTable(document.getElementById("date-filter").value);
+    updateFilteredTable(getCurrentDate());
   });
+
+  // Set the default date filter to today's date
+  function setDefaultDateFilter() {
+    const today = getCurrentDate();
+    document.getElementById("date-filter").value = today;
+    updateFilteredTable(today);
+  }
+
+  // Get today's date in yyyy-mm-dd format
+  function getCurrentDate() {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    return yyyy + '-' + mm + '-' + dd;
+  }
 
   function showTable() {
     document.getElementById('table-section').style.display = 'block';
@@ -541,19 +539,19 @@ DASHBOARD.HTML
     const tableBody = document.querySelector('#student-table tbody');
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td><input type="date" class="clean-input" value="${new Date().toISOString().split('T')[0]}" /></td>
+      <td><input type="date" class="clean-input" value="${getCurrentDate()}" /></td>
       <td>
         <select class="clean-input">
           <option value="">Select</option>
-          <option value="ThamariSelvan">ThamariSelvan</option>
+          <option value="ThamaraiSelvan">ThamariSelvan</option>
           <option value="GuruMoorthi">GuruMoorthi</option>
           <option value="Naveen">Naveen</option>
           <option value="Kesavan">Kesavan</option>
         </select>
       </td>
       <td><input type="text" class="clean-input" /></td>
-      <td><input type="number" min="1" max="1000" class="clean-input" /></td>
-      <td><input type="number" min="1" max="1000" class="clean-input" /></td>
+      <td><input type="time" class="clean-input" value="00:00" step="300" /></td>
+      <td><input type="time" class="clean-input" value="00:00" step="300" /></td>
       <td>
         <select class="clean-input">
           <option value="">Select</option>
@@ -568,96 +566,73 @@ DASHBOARD.HTML
     `;
     tableBody.appendChild(row);
   }
-
   function saveDataToLocalStorage() {
     const table = document.getElementById("student-table");
     const newData = [];
-
+  
     for (let i = 1; i < table.rows.length; i++) {
       const row = table.rows[i];
-      const inputs = row.querySelectorAll("input, select");
+      const plannedTime = row.cells[3].querySelector('input').value.split(':');
+      const actualTime = row.cells[4].querySelector('input').value.split(':');
+  
       newData.push({
-        date: inputs[0].value,
-        employeeName: inputs[1].value,
-        taskDescription: inputs[2].value,
-        plannedHours: parseInt(inputs[3].value) || 0,
-        actualHours: parseInt(inputs[4].value) || 0,
-        codeReviewStatus: inputs[5].value,
-        productivityRatio: parseInt(inputs[6].value) || 0,
-        qualityTesting: parseInt(inputs[7].value) || 0,
-        status: inputs[8].value
+        date: row.cells[0].querySelector('input').value,
+        employeeName: row.cells[1].querySelector('select').value,
+        taskDescription: row.cells[2].querySelector('input').value,
+        plannedHours: (parseInt(plannedTime[0]) * 60) + parseInt(plannedTime[1]),
+        actualHours: (parseInt(actualTime[0]) * 60) + parseInt(actualTime[1]),
+        codeReviewStatus: row.cells[5].querySelector('select').value,
+        productivityRatio: row.cells[6].querySelector('input').value,
+        qualityTesting: row.cells[7].querySelector('input').value,
+        status: row.cells[8].querySelector('input').value
       });
     }
-
-    const validNewData = newData.filter(item => item.date);
-    savedData = [...savedData, ...validNewData];
+  
+    savedData = [...savedData, ...newData];
     localStorage.setItem('logData', JSON.stringify(savedData));
-
-    if (allDataGridApi) {
-      allDataGridApi.setRowData(savedData);
-    }
   }
+  
 
-  function moveToAllData() {
-    saveDataToLocalStorage();
-    showAllDataSection();
-    const selectedDate = document.getElementById("date-filter").value;
-    filterByDate(selectedDate);
-    updateFilteredTable(selectedDate);
+  function convertTimeToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return (hours * 60) + minutes;
   }
 
   function filterByDate(date) {
-    if (allDataGridApi) {
-      const dateFilterComponent = allDataGridApi.getFilterInstance('date');
-      if (dateFilterComponent) {
-        dateFilterComponent.setModel({
-          type: 'equals',
-          dateFrom: date
-        });
-        allDataGridApi.onFilterChanged();
-      }
-    }
     updateFilteredTable(date);
   }
 
   function updateFilteredTable(date) {
-    const tbody = document.querySelector("#filtered-table tbody");
-    tbody.innerHTML = "";
-
-    const filtered = savedData.filter(entry => entry.date === date);
-    if (filtered.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='9' style='text-align:center;'>No records for selected date</td></tr>";
-      return;
-    }
-
-    filtered.forEach(data => {
-      const row = document.createElement("tr");
+    const filteredData = savedData.filter(item => item.date === date);
+    const tableBody = document.querySelector('#filtered-table tbody');
+    tableBody.innerHTML = '';
+  
+    filteredData.forEach(item => {
+      const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${data.date}</td>
-        <td>${data.employeeName}</td>
-        <td>${data.taskDescription}</td>
-        <td>${data.plannedHours}</td>
-        <td>${data.actualHours}</td>
-        <td>${data.codeReviewStatus}</td>
-        <td>${data.productivityRatio}</td>
-        <td>${data.qualityTesting}</td>
-        <td>${data.status}</td>
+        <td>${item.date}</td>
+        <td>${item.employeeName}</td>
+        <td>${item.taskDescription}</td>
+        <td>${formatTime({ value: item.plannedHours })}</td>
+        <td>${formatTime({ value: item.actualHours })}</td>
+        <td>${item.codeReviewStatus}</td>
+        <td>${item.productivityRatio}</td>
+        <td>${item.qualityTesting}</td>
+        <td>${item.status}</td>
       `;
-      tbody.appendChild(row);
+      tableBody.appendChild(row);
     });
   }
+  
 
-  function setDefaultDateFilter() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById("date-filter").value = today;
-    filterByDate(today);
+  function moveToAllData() {
+    saveDataToLocalStorage();  // Save new entries
+    allDataGridApi.setRowData(savedData);  // Refresh AG Grid
+    updateFilteredTable(getCurrentDate());  // Refresh filtered table
+    hideTable();  // Go back to list view
   }
 </script>
-
-{%endblock%}
-
-
-
+{% endblock %}
 
 
 
@@ -747,10 +722,12 @@ body {
 
 
 .add-btn-container {
-  width: 90%;
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+  width: 100%;                      
+  display: flex;                    
+  justify-content: space-between;   
+  align-items: center;
+  color: #3F2768;;              
+  margin-bottom: 20px;              
 }
 
 .add-btn {
@@ -761,12 +738,8 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 1em;
-  margin-right: -220px;
-
-
-  
-
 }
+
 .add-btn:hover {
   background-color: #58358c;
 }
@@ -777,12 +750,16 @@ body {
 
 #table-section {
   width: 100%;
+  height: 100%;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   padding: 20px;
   box-sizing: border-box;
+  overflow: auto;
 }
+
+
 
 #table-section h2 {
   margin-top: 0;
@@ -857,7 +834,8 @@ select.clean-input {
 }
 
 #button-container {
-  margin-top: 15px;
+  margin-top: 33px;
+  margin-right: 620px;
   display: flex;
   justify-content: flex-end;
 }
@@ -872,9 +850,24 @@ select.clean-input {
 }
 
 #all-data-section {
-  width: 90%;
-  display: none;
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+
 }
+#all-data-section {
+  width: 100%;
+  height: 100%;
+  overflow-x:hidden ;  /* Enables horizontal scroll */
+  overflow-y:  auto;  /* Disables vertical scroll */
+}
+
+#student-table {
+  width: 100%; /* Ensure the table takes up full width */
+  min-width: 800px; /* Adjust this value to fit the content better */
+  table-layout: fixed; /* Optional: this will prevent column resizing */
+}
+
 
 #all-data-section h2 {
   color: #3F2768;
@@ -900,12 +893,14 @@ select.clean-input {
 }
 
 #filtered-table {
-  width: 100%;
-  border-collapse: collapse;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  height: 100%;
   background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: auto;
 }
 
 #filtered-table th,
@@ -928,11 +923,10 @@ select.clean-input {
 #filtered-table td:last-child {
   border-right: none;
 }
-
 .outer-div{
 margin:10px;
 width:84%;
-height: 93vh;
+height: 85vh;
 padding:20px;
 background: #FFFFFF;
 box-shadow: 10px 20px 30px #3F27684D;
@@ -940,16 +934,3 @@ border: 1px solid #D4CDE1;
 border-radius: 30px;
 opacity: 1;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
