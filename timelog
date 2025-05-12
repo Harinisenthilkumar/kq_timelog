@@ -394,8 +394,9 @@ DASHBOARD.HTML
       </div>
     </div>
     <div id="button-container">
-      <button class="save-btn" onclick="moveToAllData()">Save</button>
+      
       <button class="cancel-btn" onclick="hideTable()">Cancel</button>
+      <button class="save-btn" onclick="moveToAllData()">Save</button>
     </div>
   </div>
 </section>
@@ -637,15 +638,6 @@ DASHBOARD.HTML
 
 
 
-
-
-
-
-
-
-
-
-
 DASHBOARD.CSS
 ---------------
 * {
@@ -830,7 +822,7 @@ select.clean-input {
 }
 
 .cancel-btn:hover {
-  background-color: #d32f2f;
+  background-color: whitesmoke;
 }
 
 #button-container {
@@ -934,3 +926,118 @@ border: 1px solid #D4CDE1;
 border-radius: 30px;
 opacity: 1;
 }
+
+
+MODELS
+--------
+# models :
+
+from django.db import models
+
+class EmployeeLog(models.Model):
+    CODE_REVIEW_CHOICES = [
+        ('Done', 'Done'),
+        ('Working', 'Working'),
+        ('Not Yet Started', 'Not Yet Started'),
+    ]
+
+    date = models.DateField()
+    employee = models.ForeignKey('UserProfile', on_delete=models.CASCADE, related_name='logs')  # team member
+    task_description = models.TextField()
+    planned_hours = models.PositiveIntegerField()
+    actual_hours = models.PositiveIntegerField()
+    code_review_status = models.CharField(max_length=50, choices=CODE_REVIEW_CHOICES)
+    productivity_rating = models.PositiveIntegerField()
+    quality_testing = models.PositiveIntegerField()
+    status = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.date} - {self.employee.userName}"
+
+
+VIEWS:
+-----
+
+from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
+from .models import UserProfile, Team
+# Create your views here.
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        request.session['username'] = username
+        return redirect('dashboard') 
+    return render(request, 'login.html')
+
+
+def dashboard(request):
+    username = request.session.get('username', 'Guest')
+    return render(request, 'dashboard.html', {'username': username})
+
+def home(request):
+    return render(request,'form.html')
+def grid_view(request):
+    return render(request, 'grid.html')
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def create_user(request):
+    try:
+        data = json.loads(request.body)
+        required_fields = ['username', 'email', 'mobile', 'employee_id', 'team', 'team_lead', 'is_active', 'remarks', 'is_locked']
+        missing_fields = [field for field in required_fields if not data.get(field)]
+
+        if missing_fields:
+            return JsonResponse({"errors": {field: ["This field is required."] for field in missing_fields}}, status=400)
+
+        if UserProfile.objects.filter(email=data["email"]).exists():
+            return JsonResponse({"errors": {"email": ["This email is already in use."]}}, status=400)
+
+        user = UserProfile.objects.create(
+            userName=data["username"],
+            email=data["email"],
+            mobileNumber=data["mobile"],
+            team=data["team"],
+            teamLead=data["team_lead"],
+            isActive=(data["is_active"].lower() == "yes"),
+            isActiveRemarks=data.get("remarks", ""),
+            isAccountLocked=(data["is_locked"].lower() == "yes"),
+            isAccountLockedRemarks=data.get("remarks_locked", ""),
+            createdBy="Thamarai"
+        )
+
+        return JsonResponse({"message": f"User '{user.userName}' created successfully."})
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def user_data_api(request):
+    users = UserProfile.objects.all().values(
+        'userName', 'email', 'mobileNumber', 'team',
+        'teamLead', 'isActive', 'isActiveRemarks',
+        'isAccountLocked', 'isAccountLockedRemarks',
+        'createdBy'
+    )
+    return JsonResponse(list(users), safe=False)
+
+
+URLS:
+------
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.login_view, name='login'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('timelog/', views.home, name='home'),
+    path('grid/', views.grid_view, name='grid_view'),
+    path('api/users/', views.user_data_api, name='user_data_api'),
+    path('create-user/', views.create_user, name='create_user'),
+]
