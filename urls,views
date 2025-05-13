@@ -1,0 +1,194 @@
+views:
+------
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.core.serializers import serialize
+from datetime import datetime
+import json
+
+from .models import LogEntry, UserProfile
+
+def dashboard(request):
+    username = request.session.get('username', 'Guest')
+    current_date = timezone.now().date()
+    user_profiles = UserProfile.objects.all()
+    all_logs = LogEntry.objects.all().order_by('date')
+
+    context = {
+        'username': username,
+        'current_date': current_date,
+        'user_profiles': user_profiles,
+        'all_logs': all_logs,
+    }
+    return render(request, 'dashboard.html', context)
+
+@csrf_exempt
+def save_logs(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            log_entries = data.get('logs', [])
+
+            for log_data in log_entries:
+                date_str = log_data['date']
+                try:
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+                except ValueError as e:
+                    return JsonResponse({'success': False, 'message': f'Invalid date format: {e}'})
+
+                LogEntry.objects.create(
+                    date=date_obj,
+                    employeeName=log_data['employeeName'],
+                    taskDescription=log_data['taskDescription'],
+                    plannedHours=log_data['plannedHours'],
+                    actualHours=log_data['actualHours'],
+                    codeReviewStatus=log_data['codeReviewStatus'],
+                    productivityRating=log_data.get('productivityRating'),
+                    qualityRating=log_data.get('qualityRating'),
+                    status=log_data['status'],
+                )
+            return JsonResponse({'success': True, 'message': 'Logs saved successfully.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'})
+
+@csrf_exempt
+def update_log(request, log_id):
+    """
+    Update a log entry based on JSON data submitted via POST
+    """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            log = get_object_or_404(LogEntry, logId=log_id)
+
+            log.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+            log.employeeName = data['employeeName']
+            log.taskDescription = data['taskDescription']
+            log.plannedhours = data['plannedHours']
+            log.actualhours = data['actualHours']
+            log.codeReviewStatus = data['codeReviewStatus']
+            log.productivityRating = data.get('productivityRating')
+            log.qualityRating = data.get('qualityRating')
+            log.status = data['status']
+            log.save()
+
+            return JsonResponse({'success': True})
+
+        except LogEntry.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Log entry not found.'}, status=404)
+        except ValueError:
+            return JsonResponse({'success': False, 'message': 'Invalid date format.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+
+
+def get_logs(request):
+    all_logs = LogEntry.objects.all().order_by('date')
+    log_data = serialize(
+        "json",
+        all_logs,
+        use_natural_foreign_keys=True,
+        fields=[
+            'logId',
+            'date',
+            'employeeName',
+            'taskDescription',
+            'plannedHours',
+            'actualHours',
+            'codeReviewStatus',
+            'productivityRating',
+            'qualityRating',
+            'status',
+        ],
+    )
+    return JsonResponse({'success': True, 'logs': json.loads(log_data)})
+
+
+
+from django.views.decorators.http import require_POST
+from .models import LogEntry 
+
+
+@require_POST
+def update_log(request, log_id):
+    """
+    Update a log entry based on form data submitted via POST
+    """
+    try:
+        # Get the log object or return 404
+        log = get_object_or_404(LogEntry, logId=log_id)
+        
+        # Update the log fields with form data
+        log.date = request.POST.get('date')
+        log.employeeName = request.POST.get('employeeName')
+        log.taskDescription = request.POST.get('taskDescription')
+        
+        # Handle time fields (converted to minutes in the frontend)
+        planned_hours = request.POST.get('plannedHours')
+        actual_hours = request.POST.get('actualHours')
+        
+        # Convert to integer if provided
+        log.plannedhours = int(planned_hours) if planned_hours and planned_hours.isdigit() else 0
+        log.actualhours = int(actual_hours) if actual_hours and actual_hours.isdigit() else 0
+        
+        log.codeReviewStatus = request.POST.get('codeReviewStatus')
+        
+        # Handle numeric fields with default values if empty
+        productivity = request.POST.get('productivityRating', '')
+        quality = request.POST.get('qualityRating', '')
+        
+        log.productivityRating = int(productivity) if productivity and productivity.isdigit() else None
+        log.qualityRating = int(quality) if quality and quality.isdigit() else None
+        
+        log.status = request.POST.get('status')
+        
+        # Save the updated log
+        log.save()
+        
+        return JsonResponse({'success': True})
+    
+    except Exception as e:
+        # Return error message if something goes wrong
+        return JsonResponse({'success': False, 'message': str(e)})
+    
+    
+def delete_log(request, log_id):
+    log_entry = get_object_or_404(LogEntry, logId=log_id)
+    log_entry.delete()
+    return redirect('dashboard')
+
+
+
+
+
+urls:
+-------
+
+urlpatterns = [
+    path('', views.login_view, name='login'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+
+ 
+   
+    
+
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('save_logs/', views.save_logs, name='save_logs'),
+    path('get_logs/', views.get_logs, name='get_logs'),
+    
+   
+
+    path('update_log/<int:log_id>/', views.update_log, name='update_log'),
+    
+    # URL for deleting a log entry (already in your code)
+    path('delete_log/<int:log_id>/', views.delete_log, name='delete_log'),
+    
