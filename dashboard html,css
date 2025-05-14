@@ -1,8 +1,6 @@
 dashboard.html
-  ---------------
-
-
-  {% extends "layouts/main.html" %}
+--------------
+{% extends "layouts/main.html" %}
 {% load static %}
 {% load component_tags %}
 {% block style %}
@@ -41,8 +39,9 @@ dashboard.html
 {% block content %}
 <section class="form-main-container" style="display: flex; width: 100%;">
     {% component 'sidebar' %}{% endcomponent %}
-    <div class="outer-div">
-        <div id="table-section" style="display: none; flex-grow: 1;">
+    <div class="outer-div" style="height:93vh;">
+        <div id="table-section" style="display: none; flex-grow: 1;flex-direction:column;justify-content:space-between;height:90vh;">
+            <div>
             <h2>Add Log Details</h2>
             <form id="add-log-form">
                 <table id="student-table">
@@ -66,9 +65,10 @@ dashboard.html
                                 <select class="clean-input" name="employeeName">
                                     <option value="">Select</option>
                                     {% for user in user_profiles %}
-                                    <option value="{{ user.userName }}">{{ user.userName }}</option>
+                                        <option value="{{ user.userName }}">{{ user.userName }}</option>
                                     {% endfor %}
                                 </select>
+                                
                             </td>
                             <td><input type="text" class="clean-input" name="taskDescription" /></td>
                             <td><input type="time" class="clean-input" name="plannedHours" value="00:00"
@@ -92,6 +92,11 @@ dashboard.html
                 </table>
                 <button type="button" class="add-row-btn" onclick="addRow()">+ Add Row</button>
             </form>
+        </div>
+            <div id="button-container" style="display: none;margin-top:30%;">
+                <button class="cancel-btn" onclick="hideTable()">Cancel</button>
+                <button type="button" class="save-btn" onclick="saveLogs()">Save</button>
+            </div>
         </div>
 
         <div id="all-data-section">
@@ -129,14 +134,29 @@ dashboard.html
                     <tbody id="filtered-table-body">
                         {% for log in all_logs %}
                         <tr data-log-id="{{ log.logId }}">
-                            <td class="action-icons">
-                                <a href="#"
-                                    onclick="openEditModal('{{ log.logId }}', '{{ log.date|date:"Y-m-d" }}', '{{ log.employeeName }}', '{{ log.taskDescription }}', '{{ log.plannedhours }}', '{{ log.actualhours }}', '{{ log.codeReviewStatus }}', '{{ log.productivityRating|default_if_none:"" }}', '{{ log.qualityRating|default_if_none:"" }}', '{{ log.status }}')"><i
-                                        class="fa-solid fa-pen-to-square"></i></a>
-                                <a href="{% url 'delete_log' log.logId %}"
-                                    onclick="return confirm('Are you sure you want to delete this log entry?')"><i
-                                        class="fa-solid fa-trash"></i></a>
-                            </td>
+                           <td class="action-icons">
+    <!-- Edit icon -->
+    <a href="#"
+    class="edit-btn"
+    data-log-id="{{ log.logId }}"
+    data-date="{{ log.date|date:'Y-m-d'|default_if_none:'' }}"
+    data-employee="{{ log.employeeName|escapejs }}"
+    data-task="{{ log.taskDescription|escapejs }}"
+    data-planned="{{ log.plannedhours }}"
+    data-actual="{{ log.actualhours }}"
+    data-review="{{ log.codeReviewStatus }}"
+    data-productivity="{{ log.productivityRating|default_if_none:'' }}"
+    data-quality="{{ log.qualityRating|default_if_none:'' }}"
+    data-status="{{ log.status }}">
+    <img src="{% static 'images/edit.svg' %}" alt="Edit" style="width: 20px; margin-right: 10px;" />
+ </a>
+ 
+ <!-- Delete icon -->
+ <a href="{% url 'delete_log' log.logId %}" onclick="return confirm('Are you sure you want to delete this log entry?')">
+     <img src="{% static 'images/delete.svg' %}" alt="Delete" style="width: 20px;" />
+ </a>
+</td>
+
                             <td data-date="{{ log.date|date:"Y-m-d" }}">{{ log.date|date:"Y-m-d" }}</td>
                             <td data-employee-name="{{ log.employeeName }}">{{ log.employeeName }}</td>
                             <td data-task-description="{{ log.taskDescription }}">{{ log.taskDescription }}</td>
@@ -158,78 +178,7 @@ dashboard.html
                 </table>
             </div>
         </div>
-        <div id="button-container" style="display: none;">
-            <button class="cancel-btn" onclick="hideTable()">Cancel</button>
-            <button type="button" class="save-btn" onclick="saveLogs()">Save</button>
-        </div>
     </div>
-
-    <div class="modal fade" id="editLogModal" tabindex="-1" role="dialog" aria-labelledby="editLogModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Log</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editLogForm">
-                        <input type="hidden" id="edit_log_id" name="logId">
-                        <div class="form-group">
-                            <label for="edit_date">Date</label>
-                            <input type="date" class="form-control" id="edit_date" name="date">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_employee_name">Employee Name</label>
-                            <input type="text" class="form-control" id="edit_employee_name" name="employeeName"
-                                readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_task_description">Task Description</label>
-                            <input type="text" class="form-control" id="edit_task_description"
-                                name="taskDescription">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_planned_hours">Planned Hours</label>
-                            <input type="time" class="form-control" id="edit_planned_hours" name="plannedHours"
-                                step="300">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_actual_hours">Actual Hours</label>
-                            <input type="time" class="form-control" id="edit_actual_hours" name="actualHours"
-                                step="300">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_code_review_status">Code Review Status</label>
-                            <select class="form-control" id="edit_code_review_status" name="codeReviewStatus">
-                                <option value="">Select</option>
-                                <option value="Done">Done</option>
-                                <option value="Working">Working</option>
-                                <option value="Not Yet Started">Not Yet Started</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_productivity_rating">Productivity Rating</label>
-                            <input type="number" min="1" max="10" class="form-control"
-                                id="edit_productivity_rating" name="productivityRating">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_quality_rating">Quality Rating</label>
-                            <input type="number" min="1" max="10" class="form-control" id="edit_quality_rating"
-                                name="qualityRating">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_status">Status</label>
-                            <input type="text" class="form-control" id="edit_status" name="status">
-                        </div>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="updateLog()">Update</button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
 
     {% component 'logout' %} {% endcomponent %}
@@ -241,7 +190,6 @@ dashboard.html
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
-
 
 
 
@@ -577,4 +525,12 @@ opacity: 1;
   font: normal normal normal 26px/40px Calibri;
   letter-spacing: 0px;
   color: #3F2768;
+}
+
+.action-icons img {
+  transition: transform 0.2s ease;
+}
+
+.action-icons img:hover {
+  transform: scale(1.1);
 }
