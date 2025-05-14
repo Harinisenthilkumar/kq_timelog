@@ -1,8 +1,5 @@
 views:
 ------
-
-
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,6 +9,45 @@ from datetime import datetime
 import json
 
 from .models import LogEntry, UserProfile
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get("username")
+        request.session['username'] = username
+        return redirect('dashboard') 
+    return render(request, 'login.html')
+
+
+
+def log_update(request):
+    if request.method == "POST":
+        log_id = request.POST.get('logId')
+        record = get_object_or_404(LogEntry, logId=log_id)
+
+        # Get HH:MM format values
+        planned_input = request.POST.get('plannedHours', '0:00')
+        actual_input = request.POST.get('actualHours', '0:00')
+
+        # Convert to decimal hours
+        planned_hours = parse_time_to_decimal(planned_input)
+        actual_hours = parse_time_to_decimal(actual_input)
+
+        # Update fields
+        record.date = request.POST.get('date')
+        record.taskDescription = request.POST.get('taskDescription')
+        record.plannedHours = planned_hours
+        record.actualHours = actual_hours
+        record.codeReviewStatus = request.POST.get('codeReviewStatus')
+        record.productivityRating = request.POST.get('productivityRating')
+        record.qualityRating = request.POST.get('qualityRating')
+        record.status = request.POST.get('status')
+        record.is_updated = True
+
+        record.save()
+        return redirect('dashboard')
+
+    return redirect('dashboard')
+
 
 def dashboard(request):
     username = request.session.get('username', 'Guest')
@@ -165,6 +201,8 @@ def delete_log(request, log_id):
     log_entry = get_object_or_404(LogEntry, logId=log_id)
     log_entry.delete()
     return redirect('dashboard')
+
+
 
 
 
